@@ -19,3 +19,9 @@ Future<http.Response> updateTodoItem(Todo item) async {
       body: json.encode(item.toJson()));
   return response;
 }
+
+Future<http.Response> deleteTodoItem(int itemId) async {
+  final response = await http
+      .delete('http://jsonplaceholder.typicode.com/todos/${itemId.toString()}');
+  return response;
+}
