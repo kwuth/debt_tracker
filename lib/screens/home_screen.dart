@@ -11,6 +11,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  initState() {
+    _fetchTodoList();
+    super.initState();
+  }
+
   List<Todo> todos = [];
   @override
   Widget build(BuildContext context) {
@@ -65,17 +71,73 @@ class _HomeScreenState extends State<HomeScreen> {
           }),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final response = await fetchTodoList();
-          print('test');
-          if (response.statusCode == 200) {
+          final modalResponse = await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return _dialog();
+              });
+          if (modalResponse == null || modalResponse == '') {
+            return;
+          }
+          final response = await saveTodoItem(modalResponse.toString());
+          if (response.statusCode == 201) {
             final parsedJson = json.decode(response.body);
-            todos = Todo.fromJsonToList(parsedJson);
+            Todo _todoId = Todo.fromJson(parsedJson);
+            todos.add(_todoId.copyWith(
+                userId: 1, title: modalResponse, completed: false));
             setState(() {});
           }
         },
         tooltip: 'Add To Do',
         child: Icon(Icons.add),
       ),
+    );
+  }
+
+  _fetchTodoList() async {
+    final response = await fetchTodoList();
+    print('test');
+    if (response.statusCode == 200) {
+      final parsedJson = json.decode(response.body);
+      todos = Todo.fromJsonToList(parsedJson);
+      setState(() {});
+    }
+  }
+
+  Widget _dialog() {
+    TextEditingController _text = TextEditingController(text: '');
+    return SimpleDialog(
+      title: const Text('Add new item'),
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.fromLTRB(15, 0, 15, 8),
+          child: TextFormField(
+            controller: _text,
+            validator: (value) {
+              if (value.isEmpty) {
+                return 'Please enter some text';
+              }
+              return null;
+            },
+          ),
+        ),
+        Row(
+          children: [
+            Spacer(),
+            RaisedButton(
+              onPressed: () {
+                Navigator.of(context).pop(_text.text);
+              },
+              child: Text('Save'),
+            ),
+            FlatButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Cancel'))
+          ],
+        )
+      ],
     );
   }
 }
