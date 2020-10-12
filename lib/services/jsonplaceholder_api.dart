@@ -25,3 +25,14 @@ Future<http.Response> deleteTodoItem(int itemId) async {
       .delete('http://jsonplaceholder.typicode.com/todos/${itemId.toString()}');
   return response;
 }
+
+Future<http.Response> saveTodoItem(String title) async {
+  Map<String, dynamic> item = {
+    "userId": 123,
+    "title": title ?? "",
+    "completed": false
+  };
+
+  return await http.post('http://jsonplaceholder.typicode.com/todos',
+      body: json.encode(item));
+}
